@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'components.dart';
@@ -461,7 +462,7 @@ class _PaymentPageState extends State<PaymentPage> with TickerProviderStateMixin
             if (!alignRight) ...[
               CircleAvatar(
                 radius: 14,
-                backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                backgroundImage: imageUrl != null ? CachedNetworkImageProvider(imageUrl) : null,
                 child: imageUrl == null ? const Icon(Icons.person, size: 12) : null,
               ),
               const SizedBox(width: 8),
@@ -482,7 +483,7 @@ class _PaymentPageState extends State<PaymentPage> with TickerProviderStateMixin
               const SizedBox(width: 8),
               CircleAvatar(
                 radius: 14,
-                backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                backgroundImage: imageUrl != null ? CachedNetworkImageProvider(imageUrl) : null,
                 child: imageUrl == null ? const Icon(Icons.person, size: 12) : null,
               ),
             ],

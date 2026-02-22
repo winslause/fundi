@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'components.dart';
@@ -152,6 +153,9 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
   // ==================== SIDEBAR ====================
   
   Widget _buildSidebar(bool isMobile, bool isTablet) {
+    // Get status bar height for proper spacing on mobile
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    
     return Container(
       height: double.infinity,
       decoration: BoxDecoration(
@@ -174,9 +178,12 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
       ),
       child: Column(
         children: [
+          // Add spacing for status bar on mobile
+          if (isMobile) SizedBox(height: statusBarHeight),
+          
           // Logo area
           Container(
-            height: 80,
+            height: isMobile ? 80 : 80,
             padding: EdgeInsets.symmetric(
               horizontal: _isSidebarExpanded ? 20 : 8,
             ),
@@ -379,9 +386,17 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
   // ==================== TOP BAR ====================
   
   Widget _buildTopBar(bool isMobile) {
+    // Get status bar height for proper spacing on mobile
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final topBarHeight = isMobile ? (70 + statusBarHeight) : 70.0;
+    
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: topBarHeight,
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: isMobile ? statusBarHeight : 0,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -533,7 +548,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
               child: CircleAvatar(
                 radius: 18,
                 backgroundImage: widget.client.profileImage != null
-                    ? NetworkImage(widget.client.profileImage!)
+                    ? CachedNetworkImageProvider(widget.client.profileImage!)
                     : null,
                 child: widget.client.profileImage == null
                     ? Text(widget.client.name[0])
@@ -585,38 +600,38 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
         .length;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Welcome message
           Text(
             'Welcome back, ${widget.client.name.split(' ')[0]}!',
-            style: const TextStyle(
-              fontSize: 24,
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2C2C),
+              color: const Color(0xFF2C2C2C),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Here\'s what\'s happening with your projects',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: isMobile ? 12 : 14,
               color: Colors.grey.shade600,
             ),
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           
           // Stats Grid
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
-            childAspectRatio: 1.5,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
+            childAspectRatio: isMobile ? 1.3 : 1.5,
+            mainAxisSpacing: isMobile ? 10 : 16,
+            crossAxisSpacing: isMobile ? 10 : 16,
             children: [
               StatsCard(
                 title: 'Active Jobs',
@@ -645,28 +660,28 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
             ],
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           
           // Recent Activity
           if (_clientJobs.isNotEmpty) ...[
-            const Text(
+            Text(
               'Recent Jobs',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: isMobile ? 14 : 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C2C2C),
+                color: const Color(0xFF2C2C2C),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isMobile ? 10 : 16),
             
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
-                childAspectRatio: 1.3,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
+                childAspectRatio: isMobile ? 1.4 : 1.3,
+                mainAxisSpacing: isMobile ? 10 : 16,
+                crossAxisSpacing: isMobile ? 10 : 16,
               ),
               itemCount: _clientJobs.take(3).length,
               itemBuilder: (context, index) {
@@ -1016,19 +1031,19 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
     }
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Applications Received',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: isMobile ? 16 : 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2C2C),
+              color: const Color(0xFF2C2C2C),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: isMobile ? 12 : 20),
           
           // Applications list
           ListView.builder(
@@ -1041,11 +1056,11 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
               final fundi = MockData.getFundiById(application.fundiId);
               
               return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
+                margin: EdgeInsets.only(bottom: isMobile ? 10 : 12),
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -1060,31 +1075,38 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                       children: [
                         // Fundi info
                         CircleAvatar(
-                          radius: 24,
+                          radius: isMobile ? 18 : 24,
                           backgroundImage: fundi?.profileImage != null
-                              ? NetworkImage(fundi!.profileImage!)
+                              ? CachedNetworkImageProvider(fundi!.profileImage!)
+                              : null,
+                          child: fundi?.profileImage == null
+                              ? Text(fundi?.name[0] ?? '?', style: TextStyle(fontSize: isMobile ? 12 : 16))
                               : null,
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: isMobile ? 8 : 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 fundi?.name ?? 'Unknown',
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: isMobile ? 13 : 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2C2C2C),
+                                  color: const Color(0xFF2C2C2C),
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: isMobile ? 2 : 4),
                               Text(
                                 job.title,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: isMobile ? 10 : 13,
                                   color: Colors.grey.shade600,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -1092,20 +1114,21 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                         // Bid
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'Bid:',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: isMobile ? 9 : 11,
                                 color: Colors.grey.shade500,
                               ),
                             ),
                             Text(
                               MockData.formatCurrency(application.proposedBid),
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: TextStyle(
+                                fontSize: isMobile ? 12 : 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFFB87333),
+                                color: const Color(0xFFB87333),
                               ),
                             ),
                           ],
@@ -1113,62 +1136,94 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                       ],
                     ),
                     
-                    const SizedBox(height: 12),
+                    SizedBox(height: isMobile ? 8 : 12),
                     
                     // Cover letter
                     Text(
                       application.coverLetter,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: isMobile ? 11 : 13,
                         color: Colors.grey.shade700,
                       ),
-                      maxLines: 2,
+                      maxLines: isMobile ? 2 : 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     
-                    const SizedBox(height: 12),
+                    SizedBox(height: isMobile ? 8 : 12),
                     
                     // Actions
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (application.status == ApplicationStatus.pending) ...[
-                          OutlineButton(
-                            text: 'View Profile',
-                            onPressed: () {
-                              if (fundi != null) {
-                                context.showFundiProfile(fundi);
-                              }
-                            },
-                            height: 40,
-                          ),
-                          const SizedBox(width: 8),
-                          PrimaryButton(
-                            text: 'Accept',
-                            onPressed: () {
-                              _showAcceptConfirmation(application);
-                            },
-                            height: 40,
-                          ),
-                        ] else ...[
+                    if (application.status == ApplicationStatus.pending)
+                      isMobile
+                          ? Column(
+                              children: [
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: PrimaryButton(
+                                    text: 'Accept',
+                                    onPressed: () {
+                                      _showAcceptConfirmation(application);
+                                    },
+                                    height: 36,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlineButton(
+                                    text: 'View Profile',
+                                    onPressed: () {
+                                      if (fundi != null) {
+                                        context.showFundiProfile(fundi);
+                                      }
+                                    },
+                                    height: 36,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                OutlineButton(
+                                  text: 'View Profile',
+                                  onPressed: () {
+                                    if (fundi != null) {
+                                      context.showFundiProfile(fundi);
+                                    }
+                                  },
+                                  height: 40,
+                                ),
+                                const SizedBox(width: 8),
+                                PrimaryButton(
+                                  text: 'Accept',
+                                  onPressed: () {
+                                    _showAcceptConfirmation(application);
+                                  },
+                                  height: 40,
+                                ),
+                              ],
+                            )
+                    else
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 12, vertical: isMobile ? 4 : 6),
                             decoration: BoxDecoration(
                               color: _getApplicationStatusColor(application.status).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               _getApplicationStatusText(application.status),
                               style: TextStyle(
                                 color: _getApplicationStatusColor(application.status),
-                                fontSize: 12,
+                                fontSize: isMobile ? 10 : 12,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                         ],
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               );
@@ -1210,7 +1265,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
           child: ListTile(
             leading: CircleAvatar(
               backgroundImage: otherUser?.profileImage != null
-                  ? NetworkImage(otherUser!.profileImage!)
+                  ? CachedNetworkImageProvider(otherUser!.profileImage!)
                   : null,
             ),
             title: Text(
@@ -1391,7 +1446,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                 CircleAvatar(
                   radius: 50,
                   backgroundImage: widget.client.profileImage != null
-                      ? NetworkImage(widget.client.profileImage!)
+                      ? CachedNetworkImageProvider(widget.client.profileImage!)
                       : null,
                   child: widget.client.profileImage == null
                       ? Text(
@@ -1460,7 +1515,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: widget.client.profileImage != null
-                        ? NetworkImage(widget.client.profileImage!)
+                        ? CachedNetworkImageProvider(widget.client.profileImage!)
                         : null,
                     child: widget.client.profileImage == null
                         ? Text(

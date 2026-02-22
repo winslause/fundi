@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'auth.dart';
@@ -68,6 +70,9 @@ class _HomePageState extends State<HomePage> {
           bool isMobile = constraints.maxWidth < 800;
           bool isTablet = constraints.maxWidth >= 800 && constraints.maxWidth < 1200;
           
+          // Check if running on mobile APK (not web and is mobile screen)
+          bool isMobileApk = !kIsWeb && isMobile;
+          
           // Update _isMobile and handle slideshow
           if (_isMobile != isMobile) {
             _isMobile = isMobile;
@@ -106,13 +111,14 @@ class _HomePageState extends State<HomePage> {
                 slivers: [
                   // Responsive Navigation Bar
                   SliverAppBar(
-                    expandedHeight: isMobile ? 80 : 100,
+                    expandedHeight: isMobileApk ? 120 : (isMobile ? 80 : 100),
                     floating: true,
                     pinned: true,
                     snap: true,
-                    toolbarHeight: isMobile ? 80 : 100,
-                    backgroundColor: const Color(0xFFC0C0C0).withOpacity(0.98),
-                    elevation: 4,
+                    toolbarHeight: isMobileApk ? 120 : (isMobile ? 80 : 100),
+                    backgroundColor: const Color(0xFFC0C0C0),
+                    elevation: 0,
+                    primary: false, // AppHeader handles status bar padding
                     flexibleSpace: AppHeader(
                       isMobile: isMobile,
                       isTablet: isTablet,
@@ -144,7 +150,9 @@ class _HomePageState extends State<HomePage> {
                   // Hero Section
                   SliverToBoxAdapter(
                     child: Container(
-                      height: isMobile ? 400 : 500,
+                      constraints: BoxConstraints(
+                        minHeight: isMobile ? 400 : 500,
+                      ),
                       decoration: BoxDecoration(
                         image: const DecorationImage(
                           image: NetworkImage(
@@ -154,6 +162,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       child: Container(
+                        constraints: BoxConstraints(
+                          minHeight: isMobile ? 400 : 500,
+                        ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
@@ -168,77 +179,81 @@ class _HomePageState extends State<HomePage> {
                         child: SafeArea(
                           child: Padding(
                             padding: EdgeInsets.all(isMobile ? 24 : 40),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'SKILLED ARTISANS',
-                                  style: TextStyle(
-                                    fontSize: isMobile ? 16 : 20,
-                                    fontWeight: FontWeight.w300,
-                                    color: Colors.white,
-                                    letterSpacing: 4,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  isMobile
-                                      ? 'Hire Trusted\nFundis'
-                                      : 'Hire Trusted Fundis',
-                                  style: TextStyle(
-                                    fontSize: isMobile ? 40 : 64,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    height: 1.1,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Container(
-                                  width: isMobile ? double.infinity : 500,
-                                  child: Text(
-                                    'Connect with verified professionals for all your home improvement and repair needs.',
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'SKILLED ARTISANS',
                                     style: TextStyle(
-                                      fontSize: isMobile ? 14 : 16,
-                                      color: Colors.white.withOpacity(0.9),
-                                      height: 1.5,
+                                      fontSize: isMobile ? 16 : 20,
+                                      fontWeight: FontWeight.w300,
+                                      color: Colors.white,
+                                      letterSpacing: 4,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 32),
-                                if (!isMobile)
-                                  Row(
-                                    children: [
-                                      _buildHeroButton(
-                                        text: 'POST A JOB',
-                                        onTap: () => AuthModals.showRegisterModal(context),
-                                        isPrimary: true,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      _buildHeroButton(
-                                        text: 'FIND WORK',
-                                        onTap: () => AuthModals.showRegisterModal(context),
-                                        isPrimary: false,
-                                      ),
-                                    ],
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    isMobile
+                                        ? 'Hire Trusted\nFundis'
+                                        : 'Hire Trusted Fundis',
+                                    style: TextStyle(
+                                      fontSize: isMobile ? 40 : 64,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1.1,
+                                    ),
                                   ),
-                                if (isMobile)
-                                  Column(
-                                    children: [
-                                      _buildHeroButton(
-                                        text: 'POST A JOB',
-                                        onTap: () => AuthModals.showRegisterModal(context),
-                                        isPrimary: true,
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    width: isMobile ? 300 : 500,
+                                    child: Text(
+                                      'Connect with verified professionals for all your home improvement and repair needs.',
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 14 : 16,
+                                        color: Colors.white.withOpacity(0.9),
+                                        height: 1.5,
                                       ),
-                                      const SizedBox(height: 12),
-                                      _buildHeroButton(
-                                        text: 'FIND WORK',
-                                        onTap: () => AuthModals.showRegisterModal(context),
-                                        isPrimary: false,
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                              ],
+                                  const SizedBox(height: 32),
+                                  if (!isMobile)
+                                    Row(
+                                      children: [
+                                        _buildHeroButton(
+                                          text: 'POST A JOB',
+                                          onTap: () => AuthModals.showRegisterModal(context),
+                                          isPrimary: true,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        _buildHeroButton(
+                                          text: 'FIND WORK',
+                                          onTap: () => AuthModals.showRegisterModal(context),
+                                          isPrimary: false,
+                                        ),
+                                      ],
+                                    ),
+                                  if (isMobile)
+                                    Column(
+                                      children: [
+                                        _buildHeroButton(
+                                          text: 'POST A JOB',
+                                          onTap: () => AuthModals.showRegisterModal(context),
+                                          isPrimary: true,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildHeroButton(
+                                          text: 'FIND WORK',
+                                          onTap: () => AuthModals.showRegisterModal(context),
+                                          isPrimary: false,
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -663,9 +678,19 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
+                  child: CachedNetworkImage(
+                    imageUrl: fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
                     fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                    ),
                   ),
                 ),
                 // Details for mobile

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'auth.dart';
@@ -25,8 +27,17 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the status bar height to properly account for it
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    
+    // Check if running on mobile APK (not web and is mobile screen)
+    final bool isMobileApk = !kIsWeb && isMobile;
+    
+    // Use taller height for mobile APK (120), regular mobile web (80), and desktop (100)
+    final headerHeight = isMobileApk ? 120.0 : (isMobile ? 80.0 : 100.0);
+    
     return Container(
-      height: isMobile ? 80 : 100,
+      height: headerHeight,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -37,87 +48,81 @@ class AppHeader extends StatelessWidget {
             const Color(0xFFA0A0A0),
           ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 16 : 24,
-          ),
-          child: Row(
-            children: [
-              // Logo
-              GestureDetector(
-                onTap: () => _navigateTo(context, 'home'),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFFB87333),
-                            Color(0xFFCD7F32),
-                          ],
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.build,
-                        color: Colors.white,
-                        size: 24,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: isMobile ? 16 : 24,
+          right: isMobile ? 16 : 24,
+          // Use same padding for all platforms
+          top: statusBarHeight,
+        ),
+        child: Row(
+          children: [
+            // Logo
+            GestureDetector(
+              onTap: () => _navigateTo(context, 'home'),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xFFB87333),
+                          Color(0xFFCD7F32),
+                        ],
                       ),
                     ),
-                    if (!isMobile) ...[
-                      const SizedBox(width: 12),
-                      const Text(
-                        'FUNDI',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C2C2C),
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      const Text(
-                        'MP',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w300,
-                          color: Color(0xFF4A4A4A),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              
-              const Spacer(),
-              
-              // Desktop Navigation
-              if (!isMobile) ...[
-                ..._buildNavItems(context),
-                const SizedBox(width: 24),
-                _buildNavButtons(context),
-              ],
-              
-              // Mobile Menu Button
-              if (isMobile)
-                IconButton(
-                  icon: Icon(
-                    isMobileMenuOpen ? Icons.close : Icons.menu,
-                    color: const Color(0xFF2C2C2C),
+                    child: const Icon(
+                      Icons.build,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
-                  onPressed: onMenuToggle,
-                ),
+                  if (!isMobile) ...[
+                    const SizedBox(width: 12),
+                    const Text(
+                      'FUNDI',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2C2C2C),
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const Text(
+                      'MP',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                        color: Color(0xFF4A4A4A),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            
+            const Spacer(),
+            
+            // Desktop Navigation
+            if (!isMobile) ...[
+              ..._buildNavItems(context),
+              const SizedBox(width: 24),
+              _buildNavButtons(context),
             ],
-          ),
+            
+            // Mobile Menu Button
+            if (isMobile)
+              IconButton(
+                icon: Icon(
+                  isMobileMenuOpen ? Icons.close : Icons.menu,
+                  color: const Color(0xFF2C2C2C),
+                ),
+                onPressed: onMenuToggle,
+              ),
+          ],
         ),
       ),
     );
@@ -431,7 +436,7 @@ class AppFooter extends StatelessWidget {
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 4),
+            crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 5),
             childAspectRatio: isMobile ? 2 : 1.5,
             mainAxisSpacing: 30,
             crossAxisSpacing: 30,
@@ -506,6 +511,25 @@ class AppFooter extends StatelessWidget {
                   _buildFooterLink(context, 'FAQ', 'faq'),
                   _buildFooterLink(context, 'Privacy', 'privacy'),
                   _buildFooterLink(context, 'Terms', 'terms'),
+                ],
+              ),
+              
+              // Testing Links (for testing purposes)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'TESTING',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFooterLink(context, 'Client Dashboard', 'client_dashboard'),
+                  _buildFooterLink(context, 'Fundi Dashboard', 'fundi_dashboard'),
+                  _buildFooterLink(context, 'Admin Dashboard', 'admin_dashboard'),
                 ],
               ),
               
@@ -612,6 +636,15 @@ class AppFooter extends StatelessWidget {
         break;
       case 'jobs':
         Navigator.pushNamed(context, '/jobs');
+        break;
+      case 'client_dashboard':
+        Navigator.pushNamed(context, '/client_dashboard');
+        break;
+      case 'fundi_dashboard':
+        Navigator.pushNamed(context, '/fundi_dashboard');
+        break;
+      case 'admin_dashboard':
+        Navigator.pushNamed(context, '/admin_dashboard');
         break;
       case 'how_it_works':
       case 'contact':
@@ -1135,19 +1168,38 @@ class FundiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    
     if (compact) {
-      return _buildCompactCard();
+      return _buildCompactCard(isMobile);
     }
-    return _buildFullCard();
+    return _buildFullCard(isMobile);
   }
 
-  Widget _buildFullCard() {
+  Widget _buildFullCard(bool isMobile) {
+    // Responsive sizing
+    final borderRadius = isMobile ? 8.0 : 12.0;
+    final imageHeight = isMobile ? 80.0 : 120.0;
+    final padding = isMobile ? 8.0 : 12.0;
+    final nameSize = isMobile ? 12.0 : 14.0;
+    final titleSize = isMobile ? 9.0 : 11.0;
+    final starSize = isMobile ? 10.0 : 12.0;
+    final reviewCountSize = isMobile ? 7.0 : 9.0;
+    final skillFontSize = isMobile ? 6.0 : 8.0;
+    final skillPaddingH = isMobile ? 4.0 : 6.0;
+    final skillPaddingV = isMobile ? 1.0 : 2.0;
+    final labelSize = isMobile ? 7.0 : 9.0;
+    final valueSize = isMobile ? 10.0 : 12.0;
+    final checkIconSize = isMobile ? 8.0 : 10.0;
+    final spacing = isMobile ? 4.0 : 8.0;
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -1158,39 +1210,46 @@ class FundiCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Image
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.network(
-                fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
-                height: 120,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(borderRadius)),
+              child: CachedNetworkImage(
+                imageUrl: fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
+                height: imageHeight,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 120,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.person, size: 40, color: Colors.grey),
-                  );
-                },
+                placeholder: (context, url) => Container(
+                  height: imageHeight,
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  height: imageHeight,
+                  color: Colors.grey.shade200,
+                  child: Icon(Icons.person, size: isMobile ? 30 : 40, color: Colors.grey),
+                ),
               ),
             ),
             // Details
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(padding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           fundi.name,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: TextStyle(
+                            fontSize: nameSize,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2C2C),
+                            color: const Color(0xFF2C2C2C),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1203,23 +1262,24 @@ class FundiCard extends StatelessWidget {
                             shape: BoxShape.circle,
                             color: Colors.green,
                           ),
-                          child: const Icon(Icons.check, size: 10, color: Colors.white),
+                          child: Icon(Icons.check, size: checkIconSize, color: Colors.white),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: isMobile ? 2 : 4),
                   Text(
                     fundi.title,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: titleSize,
                       color: Colors.grey.shade600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: spacing),
                   // Rating
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       ...List.generate(5, (index) {
                         return Icon(
@@ -1227,27 +1287,27 @@ class FundiCard extends StatelessWidget {
                               ? Icons.star
                               : Icons.star_border,
                           color: const Color(0xFFB87333),
-                          size: 12,
+                          size: starSize,
                         );
                       }),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 2),
                       Text(
                         '(${fundi.reviewCount})',
                         style: TextStyle(
                           color: Colors.grey.shade500,
-                          fontSize: 9,
+                          fontSize: reviewCountSize,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: spacing),
                   // Skills
                   Wrap(
                     spacing: 4,
                     runSpacing: 4,
-                    children: fundi.skills.take(2).map((skill) {
+                    children: fundi.skills.take(isMobile ? 2 : 2).map((skill) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: EdgeInsets.symmetric(horizontal: skillPaddingH, vertical: skillPaddingV),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(4),
@@ -1255,42 +1315,46 @@ class FundiCard extends StatelessWidget {
                         child: Text(
                           skill,
                           style: TextStyle(
-                            fontSize: 8,
+                            fontSize: skillFontSize,
                             color: Colors.grey.shade700,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: spacing),
                   // Rate
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Rate', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                          Text('Rate', style: TextStyle(fontSize: labelSize, color: Colors.grey.shade500)),
                           Text(
                             MockData.formatCurrency(fundi.hourlyRate),
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: valueSize,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFB87333),
+                              color: const Color(0xFFB87333),
                             ),
                           ),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Jobs', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                          Text('Jobs', style: TextStyle(fontSize: labelSize, color: Colors.grey.shade500)),
                           Text(
                             '${fundi.jobsCompleted}',
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: valueSize,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C2C2C),
+                              color: const Color(0xFF2C2C2C),
                             ),
                           ),
                         ],
@@ -1306,13 +1370,24 @@ class FundiCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactCard() {
+  Widget _buildCompactCard(bool isMobile) {
+    // Responsive sizing
+    final imageWidth = isMobile ? 50.0 : 60.0;
+    final imageHeight = isMobile ? 50.0 : 60.0;
+    final padding = isMobile ? 6.0 : 8.0;
+    final nameSize = isMobile ? 10.0 : 12.0;
+    final titleSize = isMobile ? 8.0 : 10.0;
+    final starSize = isMobile ? 8.0 : 10.0;
+    final reviewCountSize = isMobile ? 6.0 : 8.0;
+    final checkIconSize = isMobile ? 6.0 : 8.0;
+    final personIconSize = isMobile ? 24.0 : 30.0;
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -1325,39 +1400,46 @@ class FundiCard extends StatelessWidget {
           children: [
             // Image
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
-              child: Image.network(
-                fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
-                width: 60,
-                height: 60,
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(isMobile ? 6 : 8)),
+              child: CachedNetworkImage(
+                imageUrl: fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
+                width: imageWidth,
+                height: imageHeight,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.person, size: 30, color: Colors.grey),
-                  );
-                },
+                placeholder: (context, url) => Container(
+                  width: imageWidth,
+                  height: imageHeight,
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  width: imageWidth,
+                  height: imageHeight,
+                  color: Colors.grey.shade200,
+                  child: Icon(Icons.person, size: personIconSize, color: Colors.grey),
+                ),
               ),
             ),
             // Details
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(padding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
                         Expanded(
                           child: Text(
                             fundi.name,
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: nameSize,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C2C2C),
+                              color: const Color(0xFF2C2C2C),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1370,20 +1452,21 @@ class FundiCard extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: Colors.green,
                             ),
-                            child: const Icon(Icons.check, size: 8, color: Colors.white),
+                            child: Icon(Icons.check, size: checkIconSize, color: Colors.white),
                           ),
                       ],
                     ),
                     Text(
                       fundi.title,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: titleSize,
                         color: Colors.grey.shade600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         ...List.generate(5, (index) {
                           return Icon(
@@ -1391,15 +1474,15 @@ class FundiCard extends StatelessWidget {
                                 ? Icons.star
                                 : Icons.star_border,
                             color: const Color(0xFFB87333),
-                            size: 10,
+                            size: starSize,
                           );
                         }),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 2),
                         Text(
                           '(${fundi.reviewCount})',
                           style: TextStyle(
                             color: Colors.grey.shade500,
-                            fontSize: 8,
+                            fontSize: reviewCountSize,
                           ),
                         ),
                       ],
@@ -1431,75 +1514,99 @@ class ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final reviewer = MockData.getUserById(review.fromUserId);
     final job = MockData.jobs.firstWhere((j) => j.id == review.jobId);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    
+    // Responsive sizing
+    final padding = isMobile ? 12.0 : 16.0;
+    final avatarRadius = isMobile ? 16.0 : 20.0;
+    final nameSize = isMobile ? 12.0 : 14.0;
+    final jobTitleSize = isMobile ? 10.0 : 11.0;
+    final ratingIconSize = isMobile ? 10.0 : 12.0;
+    final ratingTextSize = isMobile ? 9.0 : 11.0;
+    final ratingPaddingH = isMobile ? 6.0 : 8.0;
+    final ratingPaddingV = isMobile ? 3.0 : 4.0;
+    final commentSize = isMobile ? 11.0 : 13.0;
+    final dateSize = isMobile ? 9.0 : 10.0;
+    final spacing = isMobile ? 8.0 : 12.0;
+    final smallSpacing = isMobile ? 6.0 : 8.0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header
           Row(
             children: [
               CircleAvatar(
-                radius: 20,
+                radius: avatarRadius,
                 backgroundImage: reviewer?.profileImage != null
-                    ? NetworkImage(reviewer!.profileImage!)
+                    ? CachedNetworkImageProvider(reviewer!.profileImage!)
                     : null,
                 child: reviewer?.profileImage == null
                     ? Text(
                         reviewer?.name[0] ?? '?',
-                        style: const TextStyle(color: Colors.grey),
+                        style: TextStyle(color: Colors.grey, fontSize: avatarRadius * 0.8),
                       )
                     : null,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: isMobile ? 8 : 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       reviewer?.name ?? 'Unknown',
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: TextStyle(
+                        fontSize: nameSize,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C2C2C),
+                        color: const Color(0xFF2C2C2C),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (showJobInfo) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         job.title,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: jobTitleSize,
                           color: Colors.grey.shade600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ],
                 ),
               ),
+              SizedBox(width: 4),
               // Rating
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: ratingPaddingH, vertical: ratingPaddingV),
                 decoration: BoxDecoration(
                   color: const Color(0xFFB87333).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star, color: Color(0xFFB87333), size: 12),
-                    const SizedBox(width: 4),
+                    Icon(Icons.star, color: const Color(0xFFB87333), size: ratingIconSize),
+                    SizedBox(width: 2),
                     Text(
                       review.rating.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontSize: 11,
+                      style: TextStyle(
+                        fontSize: ratingTextSize,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFB87333),
+                        color: const Color(0xFFB87333),
                       ),
                     ),
                   ],
@@ -1507,22 +1614,24 @@ class ReviewCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: spacing),
           // Comment
           Text(
             review.comment,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: commentSize,
               color: Colors.grey.shade700,
               height: 1.4,
             ),
+            maxLines: isMobile ? 3 : null,
+            overflow: isMobile ? TextOverflow.ellipsis : null,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: smallSpacing),
           // Date
           Text(
             MockData.formatDate(review.createdAt),
             style: TextStyle(
-              fontSize: 10,
+              fontSize: dateSize,
               color: Colors.grey.shade400,
             ),
           ),
@@ -1554,11 +1663,26 @@ class StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    
+    // Responsive sizing
+    final padding = isMobile ? 12.0 : 20.0;
+    final iconContainerPadding = isMobile ? 8.0 : 10.0;
+    final iconSize = isMobile ? 16.0 : 20.0;
+    final titleSize = isMobile ? 10.0 : 13.0;
+    final valueSize = isMobile ? 16.0 : 24.0;
+    final changeIconSize = isMobile ? 12.0 : 16.0;
+    final changeTextSize = isMobile ? 9.0 : 12.0;
+    final changeLabelSize = isMobile ? 8.0 : 10.0;
+    final spacing = isMobile ? 8.0 : 16.0;
+    final smallSpacing = isMobile ? 4.0 : 8.0;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -1569,61 +1693,74 @@ class StatsCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Icon
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(iconContainerPadding),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: iconSize),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
           // Title
           Text(
             title,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: titleSize,
               color: Colors.grey.shade600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: smallSpacing),
           // Value
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2C2C),
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: valueSize,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF2C2C2C),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           if (change != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: smallSpacing),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   isPositive ? Icons.trending_up : Icons.trending_down,
                   color: isPositive ? Colors.green : Colors.red,
-                  size: 16,
+                  size: changeIconSize,
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  '${change!.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isPositive ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w500,
+                SizedBox(width: 2),
+                Flexible(
+                  child: Text(
+                    '${change!.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: changeTextSize,
+                      color: isPositive ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  'vs last month',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey.shade500,
+                if (!isMobile) ...[
+                  SizedBox(width: 4),
+                  Text(
+                    'vs last month',
+                    style: TextStyle(
+                      fontSize: changeLabelSize,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],

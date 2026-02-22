@@ -5,6 +5,7 @@ import 'landing_page.dart';
 import 'home_page.dart';
 import 'fundis_page.dart';
 import 'jobs_page.dart';
+import 'test_dashboards.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -45,6 +46,9 @@ class App extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/fundis': (context) => const FundisPage(),
         '/jobs': (context) => const JobsPage(),
+        '/client_dashboard': (context) => const TestClientDashboard(),
+        '/fundi_dashboard': (context) => const TestFundiDashboard(),
+        '/admin_dashboard': (context) => const TestAdminDashboard(),
       },
     );
   }

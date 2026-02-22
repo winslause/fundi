@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'components.dart';
@@ -167,6 +169,9 @@ class _FundisPageState extends State<FundisPage> with TickerProviderStateMixin {
           final bool isMobile = constraints.maxWidth < 800;
           final bool isTablet = constraints.maxWidth >= 800 && constraints.maxWidth < 1200;
           
+          // Check if running on mobile APK (not web and is mobile screen)
+          final bool isMobileApk = !kIsWeb && isMobile;
+          
           return Stack(
             children: [
               // Background with metallic gradient
@@ -189,13 +194,14 @@ class _FundisPageState extends State<FundisPage> with TickerProviderStateMixin {
                 slivers: [
                   // Header
                   SliverAppBar(
-                    expandedHeight: isMobile ? 80 : 100,
+                    expandedHeight: isMobileApk ? 120 : (isMobile ? 80 : 100),
                     floating: true,
                     pinned: true,
                     snap: true,
-                    toolbarHeight: isMobile ? 80 : 100,
-                    backgroundColor: const Color(0xFFC0C0C0).withOpacity(0.98),
-                    elevation: 4,
+                    toolbarHeight: isMobileApk ? 120 : (isMobile ? 80 : 100),
+                    backgroundColor: const Color(0xFFC0C0C0),
+                    elevation: 0,
+                    primary: false, // AppHeader handles status bar padding
                     flexibleSpace: AppHeader(
                       isMobile: isMobile,
                       isTablet: isTablet,
@@ -810,7 +816,7 @@ class _FundiProfileModalState extends State<_FundiProfileModal> with TickerProvi
                 CircleAvatar(
                   radius: 50,
                   backgroundImage: widget.fundi.profileImage != null
-                      ? NetworkImage(widget.fundi.profileImage!)
+                      ? CachedNetworkImageProvider(widget.fundi.profileImage!)
                       : null,
                   child: widget.fundi.profileImage == null
                       ? Text(
@@ -1215,7 +1221,7 @@ class _FundiProfileModalState extends State<_FundiProfileModal> with TickerProvi
                   borderRadius: BorderRadius.circular(8),
                   image: item.imageUrl.isNotEmpty
                       ? DecorationImage(
-                          image: NetworkImage(item.imageUrl),
+                          image: CachedNetworkImageProvider(item.imageUrl),
                           fit: BoxFit.cover,
                         )
                       : null,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'components.dart';
@@ -158,6 +159,9 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
   // ==================== SIDEBAR ====================
   
   Widget _buildSidebar(bool isMobile, bool isTablet) {
+    // Get status bar height for proper spacing on mobile
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    
     return Container(
       height: double.infinity,
       decoration: BoxDecoration(
@@ -180,9 +184,12 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
       ),
       child: Column(
         children: [
+          // Add spacing for status bar on mobile
+          if (isMobile) SizedBox(height: statusBarHeight),
+          
           // Logo area
           Container(
-            height: 80,
+            height: isMobile ? 80 : 80,
             padding: EdgeInsets.symmetric(
               horizontal: _isSidebarExpanded ? 20 : 8,
             ),
@@ -377,9 +384,17 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
   // ==================== TOP BAR ====================
   
   Widget _buildTopBar(bool isMobile) {
+    // Get status bar height for proper spacing on mobile
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final topBarHeight = isMobile ? (70 + statusBarHeight) : 70.0;
+    
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: topBarHeight,
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: isMobile ? statusBarHeight : 0,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -533,7 +548,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               child: CircleAvatar(
                 radius: 18,
                 backgroundImage: widget.admin.profileImage != null
-                    ? NetworkImage(widget.admin.profileImage!)
+                    ? CachedNetworkImageProvider(widget.admin.profileImage!)
                     : null,
                 child: widget.admin.profileImage == null
                     ? Text(widget.admin.name[0])
@@ -588,38 +603,38 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
         .fold(0, (sum, job) => sum + job.budget);
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Welcome message
           Text(
             'Welcome back, ${widget.admin.name}!',
-            style: const TextStyle(
-              fontSize: 24,
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2C2C),
+              color: const Color(0xFF2C2C2C),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Here\'s what\'s happening on your platform',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: isMobile ? 12 : 14,
               color: Colors.grey.shade600,
             ),
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           
           // Stats Grid
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
-            childAspectRatio: 1.5,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
+            childAspectRatio: isMobile ? 1.3 : 1.5,
+            mainAxisSpacing: isMobile ? 10 : 16,
+            crossAxisSpacing: isMobile ? 10 : 16,
             children: [
               StatsCard(
                 title: 'Total Users',
@@ -682,17 +697,17 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
             ],
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           
           // Recent Activity
           Row(
             children: [
-              const Text(
+              Text(
                 'Recent Activity',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: isMobile ? 14 : 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
+                  color: const Color(0xFF2C2C2C),
                 ),
               ),
               const Spacer(),
@@ -702,13 +717,13 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 10 : 16),
           
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(isMobile ? 12 : 20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -724,6 +739,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                   'James Odhiambo just joined as an Electrician',
                   '5 min ago',
                   Icons.person_add,
+                  isMobile,
                 ),
                 const Divider(),
                 _buildActivityItem(
@@ -731,6 +747,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                   'New plumbing job in Kilimani',
                   '15 min ago',
                   Icons.work,
+                  isMobile,
                 ),
                 const Divider(),
                 _buildActivityItem(
@@ -738,6 +755,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                   'David Kamau applied for a plumbing job',
                   '1 hour ago',
                   Icons.assignment,
+                  isMobile,
                 ),
                 const Divider(),
                 _buildActivityItem(
@@ -745,6 +763,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                   'Electrical job in Westlands marked completed',
                   '2 hours ago',
                   Icons.check_circle,
+                  isMobile,
                 ),
               ],
             ),
@@ -754,44 +773,49 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     );
   }
   
-  Widget _buildActivityItem(String title, String subtitle, String time, IconData icon) {
+  Widget _buildActivityItem(String title, String subtitle, String time, IconData icon, [bool isMobile = false]) {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(isMobile ? 6 : 8),
           decoration: BoxDecoration(
             color: const Color(0xFFB87333).withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: const Color(0xFFB87333), size: 16),
+          child: Icon(icon, color: const Color(0xFFB87333), size: isMobile ? 14 : 16),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: isMobile ? 8 : 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: isMobile ? 12 : 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF2C2C2C),
+                  color: const Color(0xFF2C2C2C),
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: isMobile ? 10 : 12,
                   color: Colors.grey.shade600,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
+        SizedBox(width: 4),
         Text(
           time,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: isMobile ? 9 : 11,
             color: Colors.grey.shade400,
           ),
         ),
@@ -870,7 +894,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundImage: user.profileImage != null
-                        ? NetworkImage(user.profileImage!)
+                        ? CachedNetworkImageProvider(user.profileImage!)
                         : null,
                     child: user.profileImage == null
                         ? Text(user.name[0])
@@ -1013,16 +1037,16 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       itemCount: _pendingFundis.length,
       itemBuilder: (context, index) {
         final fundi = _pendingFundis[index];
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
+          padding: EdgeInsets.all(isMobile ? 12 : 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
@@ -1036,49 +1060,54 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 30,
+                    radius: isMobile ? 24 : 30,
                     backgroundImage: fundi.profileImage != null
-                        ? NetworkImage(fundi.profileImage!)
+                        ? CachedNetworkImageProvider(fundi.profileImage!)
                         : null,
                     child: fundi.profileImage == null
-                        ? Text(fundi.name[0])
+                        ? Text(fundi.name[0], style: TextStyle(fontSize: isMobile ? 16 : 20))
                         : null,
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isMobile ? 10 : 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           fundi.name,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: isMobile ? 14 : 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2C2C),
+                            color: const Color(0xFF2C2C2C),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: isMobile ? 2 : 4),
                         Text(
                           fundi.title,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: isMobile ? 11 : 13,
                             color: Colors.grey.shade600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: isMobile ? 4 : 4),
                         Wrap(
                           spacing: 4,
-                          children: fundi.skills.take(3).map((skill) {
+                          runSpacing: 4,
+                          children: fundi.skills.take(isMobile ? 2 : 3).map((skill) {
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 skill,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: isMobile ? 8 : 10,
                                   color: Colors.grey.shade700,
                                 ),
                               ),
@@ -1091,76 +1120,119 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                 ],
               ),
               
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 10 : 16),
               
               // Documents
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(isMobile ? 8 : 12),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Documents:',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: isMobile ? 10 : 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF2C2C2C),
+                        color: const Color(0xFF2C2C2C),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: isMobile ? 6 : 8),
                     Row(
                       children: [
-                        _buildDocumentTile('ID Card', Icons.badge),
-                        const SizedBox(width: 12),
-                        _buildDocumentTile('Certificate', Icons.card_membership),
-                        const SizedBox(width: 12),
-                        _buildDocumentTile('License', Icons.verified),
+                        Expanded(child: _buildDocumentTile('ID Card', Icons.badge, isMobile)),
+                        SizedBox(width: isMobile ? 6 : 12),
+                        Expanded(child: _buildDocumentTile('Certificate', Icons.card_membership, isMobile)),
+                        SizedBox(width: isMobile ? 6 : 12),
+                        Expanded(child: _buildDocumentTile('License', Icons.verified, isMobile)),
                       ],
                     ),
                   ],
                 ),
               ),
               
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 10 : 16),
               
-              // Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlineButton(
-                      text: 'View Profile',
-                      onPressed: () {
-                        context.showFundiProfile(fundi);
-                      },
-                      icon: Icons.person,
+              // Actions - Wrap on mobile
+              if (isMobile)
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: PrimaryButton(
+                            text: 'Approve',
+                            onPressed: () {
+                              _showApproveConfirmation(fundi);
+                            },
+                            icon: Icons.check,
+                            height: 36,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlineButton(
+                            text: 'Reject',
+                            onPressed: () {
+                              _showRejectConfirmation(fundi);
+                            },
+                            icon: Icons.close,
+                            height: 36,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: PrimaryButton(
-                      text: 'Approve',
-                      onPressed: () {
-                        _showApproveConfirmation(fundi);
-                      },
-                      icon: Icons.check,
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlineButton(
+                        text: 'View Profile',
+                        onPressed: () {
+                          context.showFundiProfile(fundi);
+                        },
+                        icon: Icons.person,
+                        height: 36,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlineButton(
-                      text: 'Reject',
-                      onPressed: () {
-                        _showRejectConfirmation(fundi);
-                      },
-                      icon: Icons.close,
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlineButton(
+                        text: 'View Profile',
+                        onPressed: () {
+                          context.showFundiProfile(fundi);
+                        },
+                        icon: Icons.person,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: PrimaryButton(
+                        text: 'Approve',
+                        onPressed: () {
+                          _showApproveConfirmation(fundi);
+                        },
+                        icon: Icons.check,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlineButton(
+                        text: 'Reject',
+                        onPressed: () {
+                          _showRejectConfirmation(fundi);
+                        },
+                        icon: Icons.close,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         );
@@ -1168,28 +1240,30 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     );
   }
   
-  Widget _buildDocumentTile(String label, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: const Color(0xFFB87333), size: 20),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey.shade600,
-              ),
+  Widget _buildDocumentTile(String label, IconData icon, [bool isMobile = false]) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: isMobile ? 6 : 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: const Color(0xFFB87333), size: isMobile ? 16 : 20),
+          SizedBox(height: isMobile ? 2 : 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isMobile ? 8 : 10,
+              color: Colors.grey.shade600,
             ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -1302,11 +1376,23 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               // Image
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
+                child: CachedNetworkImage(
+                  imageUrl: fundi.profileImage ?? 'https://randomuser.me/api/portraits/men/1.jpg',
                   height: 100,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 100,
+                    color: Colors.grey.shade200,
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 100,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.person, color: Colors.grey),
+                  ),
                 ),
               ),
               // Details
@@ -1864,7 +1950,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                 CircleAvatar(
                   radius: 50,
                   backgroundImage: widget.admin.profileImage != null
-                      ? NetworkImage(widget.admin.profileImage!)
+                      ? CachedNetworkImageProvider(widget.admin.profileImage!)
                       : null,
                   child: widget.admin.profileImage == null
                       ? Text(
@@ -1933,7 +2019,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: widget.admin.profileImage != null
-                        ? NetworkImage(widget.admin.profileImage!)
+                        ? CachedNetworkImageProvider(widget.admin.profileImage!)
                         : null,
                     child: widget.admin.profileImage == null
                         ? Text(

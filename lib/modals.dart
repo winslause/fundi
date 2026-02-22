@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'components.dart';
@@ -182,7 +183,7 @@ class _JobDetailsModalState extends State<JobDetailsModal> {
                 CircleAvatar(
                   radius: 24,
                   backgroundImage: client?.profileImage != null
-                      ? NetworkImage(client!.profileImage!)
+                      ? CachedNetworkImageProvider(client!.profileImage!)
                       : null,
                   child: client?.profileImage == null
                       ? Text(client?.name[0] ?? '?')
@@ -454,7 +455,7 @@ class _JobDetailsModalState extends State<JobDetailsModal> {
           CircleAvatar(
             radius: 16,
             backgroundImage: fundi?.profileImage != null
-                ? NetworkImage(fundi!.profileImage!)
+                ? CachedNetworkImageProvider(fundi!.profileImage!)
                 : null,
           ),
           const SizedBox(width: 12),
@@ -585,7 +586,7 @@ class FundiProfileModal extends StatelessWidget {
               CircleAvatar(
                 radius: 40,
                 backgroundImage: fundi.profileImage != null
-                    ? NetworkImage(fundi.profileImage!)
+                    ? CachedNetworkImageProvider(fundi.profileImage!)
                     : null,
                 child: fundi.profileImage == null
                     ? Text(
@@ -1313,7 +1314,7 @@ class _MessageModalState extends State<MessageModal> {
                 CircleAvatar(
                   radius: 20,
                   backgroundImage: recipient?.profileImage != null
-                      ? NetworkImage(recipient!.profileImage!)
+                      ? CachedNetworkImageProvider(recipient!.profileImage!)
                       : null,
                 ),
                 const SizedBox(width: 12),

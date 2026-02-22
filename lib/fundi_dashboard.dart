@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models.dart';
 import 'data.dart';
 import 'components.dart';
@@ -191,6 +192,8 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
   Widget _buildSidebar(bool isMobile, bool isTablet) {
     // Calculate profile completion percentage
     int profileCompletion = _calculateProfileCompletion();
+    // Get status bar height for proper spacing on mobile
+    final statusBarHeight = MediaQuery.of(context).padding.top;
     
     return Container(
       height: double.infinity,
@@ -214,9 +217,12 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
       ),
       child: Column(
         children: [
+          // Add spacing for status bar on mobile
+          if (isMobile) SizedBox(height: statusBarHeight),
+          
           // Logo area
           Container(
-            height: 80,
+            height: isMobile ? 80 : 80,
             padding: EdgeInsets.symmetric(
               horizontal: _isSidebarExpanded ? 20 : 8,
             ),
@@ -462,9 +468,17 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
   // ==================== TOP BAR ====================
   
   Widget _buildTopBar(bool isMobile) {
+    // Get status bar height for proper spacing on mobile
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final topBarHeight = isMobile ? (70 + statusBarHeight) : 70.0;
+    
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: topBarHeight,
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: isMobile ? statusBarHeight : 0,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -626,7 +640,7 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
               child: CircleAvatar(
                 radius: 18,
                 backgroundImage: widget.fundi.profileImage != null
-                    ? NetworkImage(widget.fundi.profileImage!)
+                    ? CachedNetworkImageProvider(widget.fundi.profileImage!)
                     : null,
                 child: widget.fundi.profileImage == null
                     ? Text(widget.fundi.name[0])
@@ -676,38 +690,38 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
     double totalEarnings = widget.fundi.earnings;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Welcome message
           Text(
             'Welcome back, ${widget.fundi.name.split(' ')[0]}!',
-            style: const TextStyle(
-              fontSize: 24,
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C2C2C),
+              color: const Color(0xFF2C2C2C),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Here\'s your work summary',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: isMobile ? 12 : 14,
               color: Colors.grey.shade600,
             ),
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           
           // Stats Grid
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: isMobile ? 2 : (isTablet ? 3 : 4),
-            childAspectRatio: 1.5,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
+            childAspectRatio: isMobile ? 1.3 : 1.5,
+            mainAxisSpacing: isMobile ? 10 : 16,
+            crossAxisSpacing: isMobile ? 10 : 16,
             children: [
               StatsCard(
                 title: 'Available Jobs',
@@ -748,37 +762,37 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
             ],
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
           
           // Recent Activity
           if (_myApplications.isNotEmpty) ...[
-            const Text(
+            Text(
               'Recent Applications',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: isMobile ? 14 : 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C2C2C),
+                color: const Color(0xFF2C2C2C),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isMobile ? 10 : 16),
             
-            ..._myApplications.take(3).map((app) => _buildApplicationTile(app)),
+            ..._myApplications.take(3).map((app) => _buildApplicationTile(app, isMobile)),
           ],
           
           if (_reviewsReceived.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            const Text(
+            SizedBox(height: isMobile ? 16 : 24),
+            Text(
               'Recent Reviews',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: isMobile ? 14 : 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C2C2C),
+                color: const Color(0xFF2C2C2C),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isMobile ? 10 : 16),
             
             ..._reviewsReceived.take(2).map((review) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(bottom: isMobile ? 8 : 12),
               child: ReviewCard(review: review),
             )),
           ],
@@ -1175,18 +1189,18 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       itemCount: jobs.length,
       itemBuilder: (context, index) {
         final job = jobs[index];
         final client = MockData.getClientById(job.clientId);
         
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.only(bottom: isMobile ? 10 : 12),
+          padding: EdgeInsets.all(isMobile ? 12 : 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
@@ -1200,45 +1214,53 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
               Row(
                 children: [
                   CircleAvatar(
-                    radius: 20,
+                    radius: isMobile ? 16 : 20,
                     backgroundImage: client?.profileImage != null
-                        ? NetworkImage(client!.profileImage!)
+                        ? CachedNetworkImageProvider(client!.profileImage!)
+                        : null,
+                    child: client?.profileImage == null
+                        ? Text(client?.name[0] ?? '?', style: TextStyle(fontSize: isMobile ? 12 : 14))
                         : null,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: isMobile ? 8 : 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           job.title,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: TextStyle(
+                            fontSize: isMobile ? 12 : 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2C2C),
+                            color: const Color(0xFF2C2C2C),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: isMobile ? 1 : 2),
                         Text(
                           client?.name ?? 'Unknown',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: isMobile ? 10 : 12,
                             color: Colors.grey.shade600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 8, vertical: isMobile ? 3 : 4),
                     decoration: BoxDecoration(
                       color: _getJobStatusColor(job.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       _getJobStatusText(job.status),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: isMobile ? 9 : 11,
                         color: _getJobStatusColor(job.status),
                         fontWeight: FontWeight.w500,
                       ),
@@ -1247,30 +1269,85 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
                 ],
               ),
               
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? 8 : 12),
               
               // Budget
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Budget: ${MockData.formatCurrency(job.budget)}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFB87333),
+              if (job.status == JobStatus.inProgress)
+                isMobile
+                    ? Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Budget: ',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              Text(
+                                MockData.formatCurrency(job.budget),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFB87333),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: PrimaryButton(
+                              text: 'Mark Complete',
+                              onPressed: () {
+                                _showCompleteConfirmation(job);
+                              },
+                              height: 36,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Budget: ${MockData.formatCurrency(job.budget)}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFB87333),
+                            ),
+                          ),
+                          PrimaryButton(
+                            text: 'Mark Complete',
+                            onPressed: () {
+                              _showCompleteConfirmation(job);
+                            },
+                            height: 36,
+                          ),
+                        ],
+                      )
+              else
+                Row(
+                  children: [
+                    Text(
+                      'Budget: ',
+                      style: TextStyle(
+                        fontSize: isMobile ? 11 : 13,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
-                  ),
-                  if (job.status == JobStatus.inProgress)
-                    PrimaryButton(
-                      text: 'Mark Complete',
-                      onPressed: () {
-                        _showCompleteConfirmation(job);
-                      },
-                      height: 36,
+                    Text(
+                      MockData.formatCurrency(job.budget),
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFB87333),
+                      ),
                     ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         );
@@ -1309,7 +1386,7 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
           child: ListTile(
             leading: CircleAvatar(
               backgroundImage: otherUser?.profileImage != null
-                  ? NetworkImage(otherUser!.profileImage!)
+                  ? CachedNetworkImageProvider(otherUser!.profileImage!)
                   : null,
             ),
             title: Text(
@@ -1587,7 +1664,7 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
                 CircleAvatar(
                   radius: 60,
                   backgroundImage: widget.fundi.profileImage != null
-                      ? NetworkImage(widget.fundi.profileImage!)
+                      ? CachedNetworkImageProvider(widget.fundi.profileImage!)
                       : null,
                   child: widget.fundi.profileImage == null
                       ? Text(
@@ -1694,7 +1771,7 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
                   CircleAvatar(
                     radius: 60,
                     backgroundImage: widget.fundi.profileImage != null
-                        ? NetworkImage(widget.fundi.profileImage!)
+                        ? CachedNetworkImageProvider(widget.fundi.profileImage!)
                         : null,
                     child: widget.fundi.profileImage == null
                         ? Text(
@@ -2105,18 +2182,23 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
           // Image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-            child: Image.network(
-              item.imageUrl,
+            child: CachedNetworkImage(
+              imageUrl: item.imageUrl,
               height: 120,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 120,
-                  color: Colors.grey.shade200,
-                  child: const Icon(Icons.image, color: Colors.grey),
-                );
-              },
+              placeholder: (context, url) => Container(
+                height: 120,
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                height: 120,
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.image, color: Colors.grey),
+              ),
             ),
           ),
           
@@ -2309,15 +2391,15 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
   
   // ==================== HELPER WIDGETS ====================
   
-  Widget _buildApplicationTile(JobApplication application) {
+  Widget _buildApplicationTile(JobApplication application, [bool isMobile = false]) {
     final job = MockData.jobs.firstWhere((j) => j.id == application.jobId);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: isMobile ? 6 : 8),
+      padding: EdgeInsets.all(isMobile ? 10 : 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -2329,30 +2411,33 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(isMobile ? 6 : 8),
             decoration: BoxDecoration(
               color: const Color(0xFFB87333).withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(Icons.work, color: Color(0xFFB87333), size: 16),
+            child: Icon(Icons.work, color: const Color(0xFFB87333), size: isMobile ? 14 : 16),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: isMobile ? 8 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   job.title,
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: isMobile ? 11 : 13,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2C2C),
+                    color: const Color(0xFF2C2C2C),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'Bid: ${MockData.formatCurrency(application.proposedBid)}',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: isMobile ? 9 : 11,
                     color: Colors.grey.shade600,
                   ),
                 ),
@@ -2360,15 +2445,15 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 8, vertical: isMobile ? 3 : 4),
             decoration: BoxDecoration(
               color: _getApplicationStatusColor(application.status).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               _getApplicationStatusText(application.status),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: isMobile ? 8 : 10,
                 color: _getApplicationStatusColor(application.status),
                 fontWeight: FontWeight.w500,
               ),
