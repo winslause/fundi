@@ -44,7 +44,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
     // Initialize animations
     _sidebarController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds 300),
+      duration: const Duration(milliseconds: 300),
     );
     _sidebarAnimation = CurvedAnimation(
       parent: _sidebarController,
@@ -1352,7 +1352,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                 ),
                 _buildProfileStat(
                   label: 'Total Spent',
-                  value: MockData.formatCurrency(widget.client.totalSpent),
+                  value: MockData.formatCurrency(widget.client.totalSpent.toDouble()),
                   icon: Icons.attach_money,
                 ),
                 _buildProfileStat(
@@ -1849,7 +1849,7 @@ class _ClientDashboardState extends State<ClientDashboard> with TickerProviderSt
                     final notification = _notifications[index];
                     return ListTile(
                       leading: Icon(
-                        _getNotificationIcon(notification.type ?? ''),
+                        _getNotificationIcon(notification.actionType ?? ''),
                         color: notification.isRead ? Colors.grey : const Color(0xFFB87333),
                       ),
                       title: Text(

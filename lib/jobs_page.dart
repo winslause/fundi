@@ -3,9 +3,6 @@ import 'models.dart';
 import 'data.dart';
 import 'components.dart';
 import 'modals.dart';
-import 'auth.dart';
-import 'home_page.dart';
-import 'fundis_page.dart';
 
 class JobsPage extends StatefulWidget {
   const JobsPage({super.key});
@@ -22,6 +19,7 @@ class _JobsPageState extends State<JobsPage> with TickerProviderStateMixin {
   RangeValues _budgetRange = const RangeValues(0, 100000);
   bool _showFeaturedOnly = false;
   bool _showFilters = false;
+  bool _isMobileMenuOpen = false;
   
   // Animation for filters
   late AnimationController _filtersController;
@@ -116,128 +114,142 @@ class _JobsPageState extends State<JobsPage> with TickerProviderStateMixin {
           final bool isMobile = constraints.maxWidth < 800;
           final bool isTablet = constraints.maxWidth >= 800 && constraints.maxWidth < 1200;
           
-          return CustomScrollView(
-            slivers: [
-              // App Bar
-              SliverAppBar(
-                expandedHeight: 120,
-                floating: true,
-                pinned: true,
-                backgroundColor: const Color(0xFFC0C0C0).withOpacity(0.98),
-                flexibleSpace: FlexibleSpaceBar(
-                  titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  title: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFB87333), Color(0xFFCD7F32)],
-                          ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.work,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Browse Jobs',
-                        style: TextStyle(
-                          color: Color(0xFF2C2C2C),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+          return Stack(
+            children: [
+              // Background with metallic gradient
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFFE8E8E8),
+                      const Color(0xFFD0D0D0),
+                      const Color(0xFFB8B8B8),
                     ],
+                    stops: const [0.0, 0.5, 1.0],
                   ),
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFFE0E0E0),
-                          const Color(0xFFC0C0C0),
-                          const Color(0xFFA0A0A0),
+                ),
+              ),
+              
+              CustomScrollView(
+                slivers: [
+                  // Header
+                  SliverAppBar(
+                    expandedHeight: isMobile ? 80 : 100,
+                    floating: true,
+                    pinned: true,
+                    snap: true,
+                    toolbarHeight: isMobile ? 80 : 100,
+                    backgroundColor: const Color(0xFFC0C0C0).withOpacity(0.98),
+                    elevation: 4,
+                    flexibleSpace: AppHeader(
+                      isMobile: isMobile,
+                      isTablet: isTablet,
+                      currentPage: 'jobs',
+                      isMobileMenuOpen: _isMobileMenuOpen,
+                      onMenuToggle: () {
+                        setState(() {
+                          _isMobileMenuOpen = !_isMobileMenuOpen;
+                        });
+                      },
+                    ),
+                  ),
+                  
+                  // Mobile Menu Dropdown
+                  if (isMobile && _isMobileMenuOpen)
+                    SliverToBoxAdapter(
+                      child: MobileMenu(
+                        currentPage: 'jobs',
+                        onClose: () {
+                          setState(() {
+                            _isMobileMenuOpen = false;
+                          });
+                        },
+                      ),
+                    ),
+                  
+                  // Page Title Bar
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFB87333), Color(0xFFCD7F32)],
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.work,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Browse Jobs',
+                            style: TextStyle(
+                              color: Color(0xFF2C2C2C),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Filter toggle button
+                          IconButton(
+                            icon: Icon(
+                              _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
+                              color: _showFilters ? const Color(0xFFB87333) : const Color(0xFF2C2C2C),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showFilters = !_showFilters;
+                                if (_showFilters) {
+                                  _filtersController.forward();
+                                } else {
+                                  _filtersController.reverse();
+                                }
+                              });
+                            },
+                          ),
+                          // Search field (desktop)
+                          if (!isMobile)
+                            Container(
+                              width: 250,
+                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                              child: TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Search jobs...',
+                                  prefixIcon: const Icon(Icons.search, size: 20),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey.shade100,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   ),
-                ),
-                actions: [
-                  // Filter toggle button
-                  IconButton(
-                    icon: Icon(
-                      _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
-                      color: _showFilters ? const Color(0xFFB87333) : const Color(0xFF2C2C2C),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _showFilters = !_showFilters;
-                        if (_showFilters) {
-                          _filtersController.forward();
-                        } else {
-                          _filtersController.reverse();
-                        }
-                      });
-                    },
-                  ),
-                  
-                  // Search field (desktop)
-                  if (!isMobile)
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search jobs...',
-                          prefixIcon: const Icon(Icons.search, size: 20),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.9),
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                      ),
-                    ),
-                  
-                  // Login/Register buttons
-                  if (!isMobile) ...[
-                    Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: TextButton(
-                        onPressed: () => AuthModals.showLoginModal(context),
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF2C2C2C),
-                        ),
-                        child: const Text('Login'),
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFB87333), Color(0xFFCD7F32)],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: TextButton(
-                        onPressed: () => AuthModals.showRegisterModal(context),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Register'),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
               
               // Mobile search bar
               if (isMobile)
@@ -314,7 +326,7 @@ class _JobsPageState extends State<JobsPage> with TickerProviderStateMixin {
                                     category.id,
                                     category.name,
                                     null,
-                                    icon: category.icon,
+                                    iconText: category.icon,
                                   );
                                 }),
                               ],
@@ -490,13 +502,15 @@ class _JobsPageState extends State<JobsPage> with TickerProviderStateMixin {
               
               // Footer
               SliverToBoxAdapter(
-                child: _buildFooter(isMobile, isTablet),
+                child: AppFooter(isMobile: isMobile, isTablet: isTablet),
               ),
             ],
-          );
-        },
-      ),
-    );
+          ),
+        ],
+      );
+    },
+  ),
+);
   }
   
   // ==================== FILTER WIDGETS ====================
@@ -587,199 +601,6 @@ class _JobsPageState extends State<JobsPage> with TickerProviderStateMixin {
           break;
       }
     });
-  }
-  
-  // ==================== FOOTER ====================
-  
-  Widget _buildFooter(bool isMobile, bool isTablet) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 40 : 60,
-        horizontal: isMobile ? 20 : 40,
-      ),
-      color: const Color(0xFF2C2C2C),
-      child: Column(
-        children: [
-          // Footer grid
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 4),
-            childAspectRatio: isMobile ? 2 : 1.5,
-            mainAxisSpacing: 30,
-            crossAxisSpacing: 30,
-            children: [
-              // About
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.build, color: Color(0xFFB87333), size: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        'FUNDI MP',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Connecting clients with skilled artisans for quality workmanship.',
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 13,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-              
-              // Quick Links
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'QUICK LINKS',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...['Home', 'Browse Fundis', 'Browse Jobs', 'How It Works'].map((link) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          link,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-              
-              // Support
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'SUPPORT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...['Contact', 'FAQ', 'Privacy', 'Terms'].map((link) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          link,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-              
-              // Contact
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'CONTACT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Row(
-                    children: [
-                      Icon(Icons.location_on, color: Color(0xFFB87333), size: 14),
-                      SizedBox(width: 8),
-                      Text('Nairobi, Kenya', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  const Row(
-                    children: [
-                      Icon(Icons.phone, color: Color(0xFFB87333), size: 14),
-                      SizedBox(width: 8),
-                      Text('+254 700 000000', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  const Row(
-                    children: [
-                      Icon(Icons.email, color: Color(0xFFB87333), size: 14),
-                      SizedBox(width: 8),
-                      Text('info@fundi.com', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 40),
-          Divider(color: Colors.grey.shade800),
-          const SizedBox(height: 20),
-          
-          // Bottom bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '© 2024 Fundi Marketplace',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
-              ),
-              if (!isMobile)
-                Row(
-                  children: [
-                    Text('Privacy', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                    const SizedBox(width: 20),
-                    Text('Terms', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                  ],
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -1141,7 +962,7 @@ class _JobDetailsModalState extends State<_JobDetailsModal> {
                   Expanded(
                     child: PrimaryButton(
                       text: _isApplying ? 'Applying...' : 'Apply Now',
-                      onPressed: _isApplying ? null : () => _showApplicationModal(),
+                      onPressed: _isApplying ? () {} : () => _showApplicationModal(),
                       isLoading: _isApplying,
                     ),
                   ),

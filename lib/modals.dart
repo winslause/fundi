@@ -814,7 +814,7 @@ class FundiProfileModal extends StatelessWidget {
                   onPressed: () {
                     // TODO: Show portfolio modal
                   },
-                  icon: Icons.portfolio,
+                  icon: Icons.work,
                 ),
               ),
               const SizedBox(width: 12),

@@ -1,13 +1,635 @@
 import 'package:flutter/material.dart';
 import 'models.dart';
 import 'data.dart';
-import 'theme.dart';
+import 'auth.dart';
+
+// ==================== REUSABLE HEADER ====================
+
+class AppHeader extends StatelessWidget {
+  final bool isMobile;
+  final bool isTablet;
+  final String? currentPage;
+  final ScrollController? scrollController;
+  final bool isMobileMenuOpen;
+  final VoidCallback? onMenuToggle;
+
+  const AppHeader({
+    super.key,
+    required this.isMobile,
+    this.isTablet = false,
+    this.currentPage,
+    this.scrollController,
+    this.isMobileMenuOpen = false,
+    this.onMenuToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: isMobile ? 80 : 100,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFE0E0E0),
+            const Color(0xFFC0C0C0),
+            const Color(0xFFA0A0A0),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 16 : 24,
+          ),
+          child: Row(
+            children: [
+              // Logo
+              GestureDetector(
+                onTap: () => _navigateTo(context, 'home'),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFB87333),
+                            Color(0xFFCD7F32),
+                          ],
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.build,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    if (!isMobile) ...[
+                      const SizedBox(width: 12),
+                      const Text(
+                        'FUNDI',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C2C2C),
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const Text(
+                        'MP',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                          color: Color(0xFF4A4A4A),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              
+              const Spacer(),
+              
+              // Desktop Navigation
+              if (!isMobile) ...[
+                ..._buildNavItems(context),
+                const SizedBox(width: 24),
+                _buildNavButtons(context),
+              ],
+              
+              // Mobile Menu Button
+              if (isMobile)
+                IconButton(
+                  icon: Icon(
+                    isMobileMenuOpen ? Icons.close : Icons.menu,
+                    color: const Color(0xFF2C2C2C),
+                  ),
+                  onPressed: onMenuToggle,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  List<Widget> _buildNavItems(BuildContext context) {
+    final items = [
+      {'label': 'Home', 'route': 'home'},
+      {'label': 'Fundis', 'route': 'fundis'},
+      {'label': 'Jobs', 'route': 'jobs'},
+      {'label': 'How It Works', 'route': 'how_it_works'},
+      {'label': 'Contact', 'route': 'contact'},
+    ];
+    return items.map((item) {
+      final isActive = currentPage == item['route'];
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: TextButton(
+          onPressed: () => _navigateTo(context, item['route'] as String),
+          style: TextButton.styleFrom(
+            foregroundColor: isActive ? const Color(0xFFB87333) : const Color(0xFF2C2C2C),
+          ),
+          child: Text(
+            item['label'] as String,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+  
+  void _navigateTo(BuildContext context, String route) {
+    switch (route) {
+      case 'home':
+        if (currentPage == 'home' && scrollController != null) {
+          scrollController!.animateTo(
+            0,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+        break;
+      case 'fundis':
+        if (currentPage != 'fundis') {
+          Navigator.pushNamed(context, '/fundis');
+        }
+        break;
+      case 'jobs':
+        if (currentPage != 'jobs') {
+          Navigator.pushNamed(context, '/jobs');
+        }
+        break;
+      case 'how_it_works':
+        if (currentPage == 'home' && scrollController != null) {
+          scrollController!.animateTo(
+            500,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          // Navigate to home and scroll to how it works
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+        break;
+      case 'contact':
+        if (currentPage == 'home' && scrollController != null) {
+          scrollController!.animateTo(
+            scrollController!.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          // Navigate to home and scroll to contact
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+        break;
+    }
+  }
+  
+  Widget _buildNavButtons(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFF2C2C2C),
+              width: 1,
+            ),
+          ),
+          child: TextButton(
+            onPressed: () => AuthModals.showLoginModal(context),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF2C2C2C),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: const Text('LOGIN'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFB87333), Color(0xFFCD7F32)],
+            ),
+          ),
+          child: TextButton(
+            onPressed: () => AuthModals.showRegisterModal(context),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: const Text('REGISTER'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ==================== MOBILE MENU ====================
+
+class MobileMenu extends StatelessWidget {
+  final String? currentPage;
+  final ScrollController? scrollController;
+  final VoidCallback? onClose;
+
+  const MobileMenu({
+    super.key,
+    this.currentPage,
+    this.scrollController,
+    this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFC0C0C0).withOpacity(0.95),
+      child: Column(
+        children: [
+          ..._buildMobileNavItems(context),
+          const Divider(color: Color(0xFFA0A0A0)),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _buildMobileNavButton(
+                    text: 'LOGIN',
+                    onTap: () {
+                      onClose?.call();
+                      AuthModals.showLoginModal(context);
+                    },
+                    isPrimary: false,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildMobileNavButton(
+                    text: 'REGISTER',
+                    onTap: () {
+                      onClose?.call();
+                      AuthModals.showRegisterModal(context);
+                    },
+                    isPrimary: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildMobileNavItems(BuildContext context) {
+    final items = [
+      {'label': 'Home', 'route': 'home'},
+      {'label': 'Browse Fundis', 'route': 'fundis'},
+      {'label': 'Browse Jobs', 'route': 'jobs'},
+      {'label': 'How It Works', 'route': 'how_it_works'},
+      {'label': 'Contact', 'route': 'contact'},
+    ];
+    return items.map((item) {
+      return ListTile(
+        title: Text(
+          item['label'] as String,
+          style: const TextStyle(
+            color: Color(0xFF2C2C2C),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        onTap: () {
+          onClose?.call();
+          _navigateTo(context, item['route'] as String);
+        },
+      );
+    }).toList();
+  }
+
+  void _navigateTo(BuildContext context, String route) {
+    switch (route) {
+      case 'home':
+        if (currentPage == 'home' && scrollController != null) {
+          scrollController!.animateTo(
+            0,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+        break;
+      case 'fundis':
+        if (currentPage != 'fundis') {
+          Navigator.pushNamed(context, '/fundis');
+        }
+        break;
+      case 'jobs':
+        if (currentPage != 'jobs') {
+          Navigator.pushNamed(context, '/jobs');
+        }
+        break;
+      case 'how_it_works':
+        if (currentPage == 'home' && scrollController != null) {
+          scrollController!.animateTo(
+            500,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+        break;
+      case 'contact':
+        if (currentPage == 'home' && scrollController != null) {
+          scrollController!.animateTo(
+            scrollController!.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        }
+        break;
+    }
+  }
+
+  Widget _buildMobileNavButton({
+    required String text,
+    required VoidCallback onTap,
+    required bool isPrimary,
+  }) {
+    return Container(
+      height: 45,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: isPrimary ? const Color(0xFFB87333) : Colors.transparent,
+        border: isPrimary ? null : Border.all(color: const Color(0xFF2C2C2C)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: isPrimary ? Colors.white : const Color(0xFF2C2C2C),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== REUSABLE FOOTER ====================
+
+class AppFooter extends StatelessWidget {
+  final bool isMobile;
+  final bool isTablet;
+
+  const AppFooter({
+    super.key,
+    required this.isMobile,
+    this.isTablet = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 40 : 60,
+        horizontal: isMobile ? 20 : 40,
+      ),
+      color: const Color(0xFF2C2C2C),
+      child: Column(
+        children: [
+          // Footer grid
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 4),
+            childAspectRatio: isMobile ? 2 : 1.5,
+            mainAxisSpacing: 30,
+            crossAxisSpacing: 30,
+            children: [
+              // About
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.build, color: Color(0xFFB87333), size: 24),
+                        SizedBox(width: 8),
+                        Text(
+                          'FUNDI MP',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Connecting clients with skilled artisans for quality workmanship.',
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Quick Links
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'QUICK LINKS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFooterLink(context, 'Home', 'home'),
+                  _buildFooterLink(context, 'Fundis', 'fundis'),
+                  _buildFooterLink(context, 'Jobs', 'jobs'),
+                  _buildFooterLink(context, 'How It Works', 'how_it_works'),
+                ],
+              ),
+              
+              // Support
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'SUPPORT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFooterLink(context, 'Contact', 'contact'),
+                  _buildFooterLink(context, 'FAQ', 'faq'),
+                  _buildFooterLink(context, 'Privacy', 'privacy'),
+                  _buildFooterLink(context, 'Terms', 'terms'),
+                ],
+              ),
+              
+              // Contact
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'CONTACT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Row(
+                    children: [
+                      Icon(Icons.location_on, color: Color(0xFFB87333), size: 14),
+                      SizedBox(width: 8),
+                      Text('Nairobi, Kenya', style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Row(
+                    children: [
+                      Icon(Icons.phone, color: Color(0xFFB87333), size: 14),
+                      SizedBox(width: 8),
+                      Text('+254 700 000000', style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Row(
+                    children: [
+                      Icon(Icons.email, color: Color(0xFFB87333), size: 14),
+                      SizedBox(width: 8),
+                      Text('info@fundi.com', style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 40),
+          Divider(color: Colors.grey.shade800),
+          const SizedBox(height: 20),
+          
+          // Bottom bar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '© 2024 Fundi Marketplace',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                ),
+              ),
+              if (!isMobile)
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => _navigateTo(context, 'privacy'),
+                      child: Text('Privacy', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    ),
+                    const SizedBox(width: 20),
+                    GestureDetector(
+                      onTap: () => _navigateTo(context, 'terms'),
+                      child: Text('Terms', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterLink(BuildContext context, String label, String route) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: GestureDetector(
+        onTap: () => _navigateTo(context, route),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateTo(BuildContext context, String route) {
+    switch (route) {
+      case 'home':
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        break;
+      case 'fundis':
+        Navigator.pushNamed(context, '/fundis');
+        break;
+      case 'jobs':
+        Navigator.pushNamed(context, '/jobs');
+        break;
+      case 'how_it_works':
+      case 'contact':
+      case 'faq':
+      case 'privacy':
+      case 'terms':
+        // For now, navigate to home for these
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        break;
+    }
+  }
+}
 
 // ==================== CUSTOM BUTTONS ====================
 
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
   final double height;
@@ -138,7 +760,7 @@ class SecondaryButton extends StatelessWidget {
 
 class OutlineButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double? width;
   final double height;
   final IconData? icon;

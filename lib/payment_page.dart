@@ -127,7 +127,7 @@ class _PaymentPageState extends State<PaymentPage> with TickerProviderStateMixin
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Your payment has been processed successfully.',
                 textAlign: TextAlign.center,
                 style: TextStyle(

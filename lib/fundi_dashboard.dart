@@ -1536,7 +1536,7 @@ class _FundiDashboardState extends State<FundiDashboard> with TickerProviderStat
               if (_portfolio.isEmpty)
                 Center(
                   child: EmptyState(
-                    icon: Icons.portfolio,
+                    icon: Icons.work,
                     title: 'No Portfolio Items',
                     message: 'Add your work samples to attract more clients',
                   ),

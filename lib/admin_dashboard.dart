@@ -1267,7 +1267,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               if (index == featuredJobs.length) {
                 return _buildAddFeaturedCard(
                   'Add Featured Job',
-                  Icons.work_add,
+                  Icons.add_circle_outline,
                   () {
                     // Show job selection modal
                   },

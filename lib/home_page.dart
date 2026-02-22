@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'models.dart';
 import 'data.dart';
-import 'theme.dart';
 import 'auth.dart';
+import 'components.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -114,149 +113,31 @@ class _HomePageState extends State<HomePage> {
                     toolbarHeight: isMobile ? 80 : 100,
                     backgroundColor: const Color(0xFFC0C0C0).withOpacity(0.98),
                     elevation: 4,
-                    flexibleSpace: Container(
-                      height: isMobile ? 80 : 100,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFFE0E0E0),
-                            const Color(0xFFC0C0C0),
-                            const Color(0xFFA0A0A0),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: SafeArea(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 16 : 24,
-                          ),
-                          child: Row(
-                            children: [
-                              // Logo
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFFB87333),
-                                          Color(0xFFCD7F32),
-                                        ],
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.build,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  if (!isMobile) ...[
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'FUNDI',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2C2C2C),
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'MP',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w300,
-                                        color: Color(0xFF4A4A4A),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              
-                              const Spacer(),
-                              
-                              // Desktop Navigation
-                              if (!isMobile) ...[
-                                ..._buildNavItems(),
-                                const SizedBox(width: 24),
-                                _buildNavButtons(context),
-                              ],
-                              
-                              // Mobile Menu Button
-                              if (isMobile)
-                                IconButton(
-                                  icon: Icon(
-                                    _isMobileMenuOpen ? Icons.close : Icons.menu,
-                                    color: const Color(0xFF2C2C2C),
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _isMobileMenuOpen = !_isMobileMenuOpen;
-                                    });
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    flexibleSpace: AppHeader(
+                      isMobile: isMobile,
+                      isTablet: isTablet,
+                      currentPage: 'home',
+                      scrollController: _scrollController,
+                      isMobileMenuOpen: _isMobileMenuOpen,
+                      onMenuToggle: () {
+                        setState(() {
+                          _isMobileMenuOpen = !_isMobileMenuOpen;
+                        });
+                      },
                     ),
                   ),
                   
                   // Mobile Menu Dropdown
                   if (isMobile && _isMobileMenuOpen)
                     SliverToBoxAdapter(
-                      child: Container(
-                        color: const Color(0xFFC0C0C0).withOpacity(0.95),
-                        child: Column(
-                          children: [
-                            ..._buildMobileNavItems(context),
-                            const Divider(color: Color(0xFFA0A0A0)),
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: _buildMobileNavButton(
-                                      text: 'LOGIN',
-                                      onTap: () {
-                                        setState(() {
-                                          _isMobileMenuOpen = false;
-                                        });
-                                        AuthModals.showLoginModal(context);
-                                      },
-                                      isPrimary: false,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildMobileNavButton(
-                                      text: 'REGISTER',
-                                      onTap: () {
-                                        setState(() {
-                                          _isMobileMenuOpen = false;
-                                        });
-                                        AuthModals.showRegisterModal(context);
-                                      },
-                                      isPrimary: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: MobileMenu(
+                        currentPage: 'home',
+                        scrollController: _scrollController,
+                        onClose: () {
+                          setState(() {
+                            _isMobileMenuOpen = false;
+                          });
+                        },
                       ),
                     ),
                   
@@ -616,7 +497,7 @@ class _HomePageState extends State<HomePage> {
                   
                   // Footer
                   SliverToBoxAdapter(
-                    child: _buildFooter(isMobile, isTablet),
+                    child: AppFooter(isMobile: isMobile, isTablet: isTablet),
                   ),
                 ],
               ),
@@ -628,168 +509,6 @@ class _HomePageState extends State<HomePage> {
   }
   
   // Helper Methods
-  
-  List<Widget> _buildNavItems() {
-    final items = [
-      {'label': 'Home', 'route': 'home'},
-      {'label': 'Fundis', 'route': 'fundis'},
-      {'label': 'Jobs', 'route': 'jobs'},
-      {'label': 'How It Works', 'route': 'how_it_works'},
-      {'label': 'Contact', 'route': 'contact'},
-    ];
-    return items.map((item) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: TextButton(
-          onPressed: () => _navigateTo(item['route'] as String),
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF2C2C2C),
-          ),
-          child: Text(
-            item['label'] as String,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      );
-    }).toList();
-  }
-  
-  void _navigateTo(String route) {
-    switch (route) {
-      case 'home':
-        // Already on home page, scroll to top
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-        break;
-      case 'fundis':
-        Navigator.pushNamed(context, '/fundis');
-        break;
-      case 'jobs':
-        Navigator.pushNamed(context, '/jobs');
-        break;
-      case 'how_it_works':
-        // Scroll to "How It Works" section
-        _scrollController.animateTo(
-          500, // Approximate position
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-        break;
-      case 'contact':
-        // Scroll to footer/contact section
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-        break;
-    }
-  }
-  
-  List<Widget> _buildMobileNavItems(BuildContext context) {
-    final items = [
-      {'label': 'Home', 'route': 'home'},
-      {'label': 'Browse Fundis', 'route': 'fundis'},
-      {'label': 'Browse Jobs', 'route': 'jobs'},
-      {'label': 'How It Works', 'route': 'how_it_works'},
-      {'label': 'Contact', 'route': 'contact'},
-    ];
-    return items.map((item) {
-      return ListTile(
-        title: Text(
-          item['label'] as String,
-          style: const TextStyle(
-            color: Color(0xFF2C2C2C),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        onTap: () {
-          setState(() {
-            _isMobileMenuOpen = false;
-          });
-          _navigateTo(item['route'] as String);
-        },
-      );
-    }).toList();
-  }
-  
-  Widget _buildNavButtons(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: const Color(0xFF2C2C2C),
-              width: 1,
-            ),
-          ),
-          child: TextButton(
-            onPressed: () => AuthModals.showLoginModal(context),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF2C2C2C),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-            child: const Text('LOGIN'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFB87333), Color(0xFFCD7F32)],
-            ),
-          ),
-          child: TextButton(
-            onPressed: () => AuthModals.showRegisterModal(context),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-            child: const Text('REGISTER'),
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildMobileNavButton({
-    required String text,
-    required VoidCallback onTap,
-    required bool isPrimary,
-  }) {
-    return Container(
-      height: 45,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: isPrimary ? const Color(0xFFB87333) : Colors.transparent,
-        border: isPrimary ? null : Border.all(color: const Color(0xFF2C2C2C)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: onTap,
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: isPrimary ? Colors.white : const Color(0xFF2C2C2C),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
   
   Widget _buildHeroButton({
     required String text,
@@ -1745,202 +1464,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildFooterLink(String label, String route) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: TextButton(
-        onPressed: () => _navigateTo(route),
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.zero,
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade400,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildFooter(bool isMobile, bool isTablet) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 40 : 60,
-        horizontal: isMobile ? 20 : 40,
-      ),
-      color: const Color(0xFF2C2C2C),
-      child: Column(
-        children: [
-          // Footer grid
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 4),
-            childAspectRatio: isMobile ? 2 : 1.5,
-            mainAxisSpacing: 30,
-            crossAxisSpacing: 30,
-            children: [
-              // About
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.build, color: Color(0xFFB87333), size: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        'FUNDI MP',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Connecting clients with skilled artisans for quality workmanship.',
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 13,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-              
-              // Quick Links
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'QUICK LINKS',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFooterLink('About', 'about'),
-                  _buildFooterLink('How It Works', 'how_it_works'),
-                  _buildFooterLink('Fundis', 'fundis'),
-                  _buildFooterLink('Jobs', 'jobs'),
-                ],
-              ),
-              
-              // Support
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'SUPPORT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...['Contact', 'FAQ', 'Privacy', 'Terms'].map((link) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          link,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-              
-              // Contact
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'CONTACT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, color: Color(0xFFB87333), size: 14),
-                      const SizedBox(width: 8),
-                      Text('Nairobi, Kenya', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.phone, color: Color(0xFFB87333), size: 14),
-                      const SizedBox(width: 8),
-                      Text('+254 700 000000', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.email, color: Color(0xFFB87333), size: 14),
-                      const SizedBox(width: 8),
-                      Text('info@fundi.com', style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 40),
-          Divider(color: Colors.grey.shade800),
-          const SizedBox(height: 20),
-          
-          // Bottom bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '© 2024 Fundi Marketplace',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
-              ),
-              if (!isMobile)
-                Row(
-                  children: [
-                    Text('Privacy', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                    const SizedBox(width: 20),
-                    Text('Terms', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                  ],
-                ),
-            ],
           ),
         ],
       ),
