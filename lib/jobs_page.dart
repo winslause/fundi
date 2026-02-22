@@ -467,13 +467,13 @@ class _JobsPageState extends State<JobsPage> with TickerProviderStateMixin {
               
               // Jobs Grid
               SliverPadding(
-                padding: EdgeInsets.all(isMobile ? 16 : 24),
+                padding: EdgeInsets.all(isMobile ? 8 : 24),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
-                    childAspectRatio: isMobile ? 1.4 : 1.3,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
+                    childAspectRatio: isMobile ? 2.2 : 1.3,
+                    mainAxisSpacing: isMobile ? 8 : 16,
+                    crossAxisSpacing: isMobile ? 8 : 16,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {

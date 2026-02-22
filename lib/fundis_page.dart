@@ -581,13 +581,13 @@ class _FundisPageState extends State<FundisPage> with TickerProviderStateMixin {
               
               // Fundis Grid
               SliverPadding(
-                padding: EdgeInsets.all(isMobile ? 16 : 24),
+                padding: EdgeInsets.all(isMobile ? 12 : 24),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
-                    childAspectRatio: isMobile ? 1.1 : 0.9,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
+                    crossAxisCount: isMobile ? 2 : (isTablet ? 2 : 3),
+                    childAspectRatio: isMobile ? 1.0 : 0.9,
+                    mainAxisSpacing: isMobile ? 12 : 16,
+                    crossAxisSpacing: isMobile ? 12 : 16,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {

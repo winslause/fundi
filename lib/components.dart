@@ -930,13 +930,27 @@ class JobCard extends StatelessWidget {
       orElse: () => MockData.categories.first,
     );
     final client = MockData.getClientById(job.clientId);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    
+    // Responsive sizing
+    final padding = isMobile ? 10.0 : 16.0;
+    final iconSize = isMobile ? 12.0 : 16.0;
+    final iconPadding = isMobile ? 6.0 : 8.0;
+    final titleSize = isMobile ? 12.0 : 14.0;
+    final clientSize = isMobile ? 9.0 : 11.0;
+    final descSize = isMobile ? 10.0 : 12.0;
+    final budgetSize = isMobile ? 11.0 : 14.0;
+    final labelSize = isMobile ? 8.0 : 10.0;
+    final dateSize = isMobile ? 9.0 : 11.0;
+    final spacing = isMobile ? 8.0 : 12.0;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -946,35 +960,36 @@ class JobCard extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Header
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(iconPadding),
                     decoration: BoxDecoration(
                       color: category.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       category.icon,
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: iconSize),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: isMobile ? 6 : 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           job.title,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: TextStyle(
+                            fontSize: titleSize,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C2C2C),
+                            color: const Color(0xFF2C2C2C),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -982,99 +997,114 @@ class JobCard extends StatelessWidget {
                         Text(
                           client?.name ?? 'Unknown',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: clientSize,
                             color: Colors.grey.shade600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
                   if (job.isFeatured)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFFB87333),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
+                      child: Text(
                         'FEATURED',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 8,
+                          fontSize: isMobile ? 6 : 8,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? 6 : spacing),
               // Description
-              Text(
-                job.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade700,
-                  height: 1.4,
+              Flexible(
+                child: Text(
+                  job.description,
+                  maxLines: isMobile ? 2 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: descSize,
+                    color: Colors.grey.shade700,
+                    height: 1.3,
+                  ),
                 ),
               ),
-              const Spacer(),
+              SizedBox(height: isMobile ? 4 : 8),
               // Footer
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Budget',
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-                      ),
-                      Text(
-                        MockData.formatCurrency(job.budget),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFB87333),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Budget',
+                          style: TextStyle(fontSize: labelSize, color: Colors.grey.shade500),
                         ),
-                      ),
-                    ],
+                        Text(
+                          MockData.formatCurrency(job.budget),
+                          style: TextStyle(
+                            fontSize: budgetSize,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFB87333),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Posted',
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-                      ),
-                      Text(
-                        MockData.formatDate(job.postedAt),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Posted',
+                          style: TextStyle(fontSize: labelSize, color: Colors.grey.shade500),
                         ),
-                      ),
-                    ],
+                        Text(
+                          MockData.formatDate(job.postedAt),
+                          style: TextStyle(
+                            fontSize: dateSize,
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              // Applications count
-              if (job.applicationsCount > 0)
+              // Applications count - hide on very small screens
+              if (job.applicationsCount > 0 && !isMobile)
                 Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: 6),
                   child: Row(
                     children: [
                       Icon(
                         Icons.people_outline,
-                        size: 12,
+                        size: 10,
                         color: Colors.grey.shade400,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Text(
                         '${job.applicationsCount} applications',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 9,
                           color: Colors.grey.shade400,
                         ),
                       ),
