@@ -583,7 +583,7 @@ class AppFooter extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '© 2024 Fundi Marketplace',
+                '© 2026 Fundi Marketplace',
                 style: TextStyle(
                   color: Colors.grey.shade600,
                   fontSize: 12,
